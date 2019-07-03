@@ -1,6 +1,8 @@
 ﻿using OpenTok;
 using System;
 using System.Diagnostics;
+using System.IO;
+using System.Runtime.InteropServices;
 using System.Windows;
 
 namespace BasicVideoChat
@@ -14,9 +16,39 @@ namespace BasicVideoChat
         Session Session;
         Publisher Publisher;
 
+        private int audioInputDeviceIndex = 0;
+
+        // Logging
+        [DllImport("opentok", EntryPoint = "otc_log_set_logger_func", CallingConvention = CallingConvention.Cdecl)]
+        internal static extern void otc_log_set_logger_func(otc_logger_func logger);
+
+        [DllImport("opentok", EntryPoint = "otc_log_enable", CallingConvention = CallingConvention.Cdecl)]
+        internal static extern void otc_log_enable(int level);
+
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        internal delegate void otc_logger_func(string message);
+
+        static StreamWriter f = File.CreateText("log.txt");
+
+        void EnableLogging()
+        {
+            otc_logger_func X = (string message) =>
+            {
+                Console.WriteLine(message);
+                //f.WriteLine(message);
+            };
+            otc_log_enable(0x7FFFFFFF);
+            otc_log_set_logger_func(X);
+        }
+
         public MainWindow()
         {
             InitializeComponent();
+            EnableLogging();
+
+            var devices = AudioDevice.EnumerateInputAudioDevices();
+            AudioDevice.SetInputAudioDevice(devices[audioInputDeviceIndex]);
+            label.Content = devices[audioInputDeviceIndex].Name;
 
             Publisher = new Publisher(Context.Instance, renderer: PublisherVideo);
 
@@ -47,6 +79,14 @@ namespace BasicVideoChat
         {
             Subscriber subscriber = new Subscriber(Context.Instance, e.Stream, SubscriberVideo);
             Session.Subscribe(subscriber);
+        }
+
+        private void Button_Click(object sender, RoutedEventArgs e)
+        {
+            var devices = AudioDevice.EnumerateInputAudioDevices();
+            audioInputDeviceIndex = (audioInputDeviceIndex + 1) % devices.Count;
+            AudioDevice.SetInputAudioDevice(devices[audioInputDeviceIndex]);
+            label.Content = devices[audioInputDeviceIndex].Name;
         }
     }
 }

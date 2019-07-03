@@ -12,5 +12,7 @@
         </OpenTok:VideoRenderer>
         <OpenTok:VideoRenderer x:Name="SubscriberVideo" HorizontalAlignment="Center" Height="480" VerticalAlignment="Bottom" Width="640">
         </OpenTok:VideoRenderer>
+        <Button x:Name="button" Content="Cycle Input Device" HorizontalAlignment="Left" Margin="84,901,0,0" VerticalAlignment="Top" Width="128" Click="Button_Click"/>
+        <Label x:Name="label" Content="Label" HorizontalAlignment="Left" Margin="226,898,0,0" VerticalAlignment="Top" Width="324"/>
     </Grid>
 </Window>
